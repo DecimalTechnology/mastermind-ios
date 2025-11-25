@@ -1,0 +1,77 @@
+iOS BUILD COMMANDS - MASTER MIND APP
+=====================================
+
+PREREQUISITES (Install on Mac):
+--------------------------------
+1. Install Xcode from Mac App Store
+2. sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+3. sudo xcodebuild -license accept
+4. sudo gem install cocoapods
+
+FIREBASE SETUP (REQUIRED):
+--------------------------
+1. Go to: https://console.firebase.google.com/
+2. Select your project
+3. Add iOS app
+4. Download GoogleService-Info.plist
+5. Place in: ios/Runner/GoogleService-Info.plist
+
+PREPARE PROJECT:
+----------------
+flutter clean
+flutter pub get
+cd ios
+pod install
+cd ..
+
+BUILD FOR SIMULATOR:
+--------------------
+flutter build ios --debug
+open ios/Runner.xcworkspace
+
+BUILD FOR DEVICE:
+-----------------
+flutter run --release
+
+BUILD IPA FOR APP STORE:
+------------------------
+flutter build ipa --release --export-method app-store
+
+BUILD IPA FOR AD-HOC:
+---------------------
+flutter build ipa --release --export-method ad-hoc
+
+TROUBLESHOOTING:
+---------------
+# Clean everything
+flutter clean
+cd ios
+pod deintegrate
+pod install
+cd ..
+
+# Check Flutter
+flutter doctor -v
+
+# Check devices
+flutter devices
+
+# View logs
+flutter logs
+
+QUICK BUILD (Use Script):
+-------------------------
+chmod +x build_ios.sh
+./build_ios.sh
+
+UPLOAD TO APP STORE:
+-------------------
+Method 1: Xcode > Product > Archive > Distribute
+Method 2: Use Transporter app (drag and drop IPA)
+
+LOCATIONS:
+----------
+Debug Build: build/ios/Debug-iphoneos/Runner.app
+Release Build: build/ios/Release-iphoneos/Runner.app
+IPA File: build/ios/ipa/master_mind.ipa
+
