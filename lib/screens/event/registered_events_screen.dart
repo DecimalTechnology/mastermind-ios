@@ -96,7 +96,7 @@ class _RegisteredEventsScreenState extends State<RegisteredEventsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: kPrimaryColor),
+          icon: const Icon(CupertinoIcons.back, color: kPrimaryColor, size: 28),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(

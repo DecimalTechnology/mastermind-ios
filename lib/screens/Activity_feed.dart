@@ -7,8 +7,6 @@ import 'package:master_mind/screens/testimonial/testimonial_listing_screen.dart'
 import 'package:master_mind/screens/testimonial/testimonialDetails/testimonial_detail_screen.dart';
 import 'package:master_mind/utils/const.dart';
 import 'package:master_mind/utils/platform_utils.dart';
-import 'package:master_mind/widgets/platform_button.dart';
-import 'package:master_mind/widgets/home_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:master_mind/providers/testimonial_provider.dart';
 import 'package:master_mind/repository/testimonial_repository/testimonial_repository.dart';
@@ -85,41 +83,69 @@ class _ActivityFeedState extends State<ActivityFeed>
           Column(
             children: [
               const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  PlatformButton(
-                    backgroundColor:
-                        isGivenSelected ? buttonColor : Colors.white,
-                    foregroundColor:
-                        isGivenSelected ? Colors.white : Colors.black,
-                    borderRadius: BorderRadius.circular(10),
-                    minWidth: 170,
-                    height: 40,
-                    onPressed: () {
-                      setState(() {
-                        isGivenSelected = true;
-                      });
-                    },
-                    child: const Text("Given"),
-                  ),
-                  const SizedBox(width: 20),
-                  PlatformButton(
-                    backgroundColor:
-                        !isGivenSelected ? buttonColor : Colors.white,
-                    foregroundColor:
-                        !isGivenSelected ? Colors.white : Colors.black,
-                    borderRadius: BorderRadius.circular(10),
-                    minWidth: 170,
-                    height: 40,
-                    onPressed: () {
-                      setState(() {
-                        isGivenSelected = false;
-                      });
-                    },
-                    child: const Text("Received"),
-                  ),
-                ],
+              // Segmented Toggle Button - 90% screen width
+              Container(
+                width: MediaQuery.of(context).size.width * 0.9,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: buttonColor, width: 1),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => isGivenSelected = true),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isGivenSelected ? buttonColor : Colors.white,
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(7),
+                              bottomLeft: Radius.circular(7),
+                            ),
+                          ),
+                          child: Text(
+                            "Given",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color:
+                                  isGivenSelected ? Colors.white : Colors.black,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => isGivenSelected = false),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color:
+                                !isGivenSelected ? buttonColor : Colors.white,
+                            borderRadius: const BorderRadius.only(
+                              topRight: Radius.circular(7),
+                              bottomRight: Radius.circular(7),
+                            ),
+                          ),
+                          child: Text(
+                            "Received",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: !isGivenSelected
+                                  ? Colors.white
+                                  : Colors.black,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
               Expanded(

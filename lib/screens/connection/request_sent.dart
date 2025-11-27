@@ -31,17 +31,24 @@ class _SentRequestsPageState extends State<SentRequestsPage> {
       context: context,
       backgroundColor: kBackgroundColor,
       appBar: AppBar(
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => Navigator.of(context).pop(),
+          child:
+              const Icon(CupertinoIcons.back, color: kPrimaryColor, size: 28),
+        ),
         title: const Text(
           "Sent Requests",
           style: TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
+            fontSize: 22,
+            letterSpacing: 1.2,
           ),
         ),
         centerTitle: true,
-        backgroundColor: kPrimaryColor,
+        backgroundColor: Colors.white,
         elevation: 0,
-        foregroundColor: Colors.white,
       ),
       body: Consumer<ConnectionProvider>(
         builder: (context, provider, _) {

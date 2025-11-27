@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:master_mind/utils/const.dart';
 
 /// Platform detection utilities
 class PlatformUtils {
@@ -85,12 +86,37 @@ class PlatformWidget {
         );
       }
 
+      // If drawer is provided, use Scaffold to support drawer on iOS
+      if (drawer != null) {
+        final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+        return Scaffold(
+          key: scaffoldKey,
+          appBar: appBar != null
+              ? _convertAppBarToMaterialWithMenu(context, appBar, scaffoldKey)
+              : null,
+          body: SafeArea(
+            child: Material(
+              color: Colors.transparent,
+              child: content,
+            ),
+          ),
+          drawer: drawer,
+          floatingActionButton: floatingActionButton,
+          backgroundColor: backgroundColor ?? CupertinoColors.systemBackground,
+          resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+        );
+      }
+
       return CupertinoPageScaffold(
         navigationBar: appBar != null
             ? _convertAppBarToCupertinoNavBar(context, appBar)
             : null,
         child: SafeArea(
-          child: content,
+          // Wrap content with Material widget to support Material widgets inside CupertinoPageScaffold
+          child: Material(
+            color: Colors.transparent,
+            child: content,
+          ),
         ),
         backgroundColor: backgroundColor ?? CupertinoColors.systemBackground,
       );
@@ -106,17 +132,69 @@ class PlatformWidget {
     );
   }
 
+  /// Convert AppBar to Material AppBar with menu button for iOS drawer support
+  static PreferredSizeWidget _convertAppBarToMaterialWithMenu(
+    BuildContext context,
+    PreferredSizeWidget appBar,
+    GlobalKey<ScaffoldState> scaffoldKey,
+  ) {
+    if (appBar is AppBar) {
+      return AppBar(
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => scaffoldKey.currentState?.openDrawer(),
+          child: const Icon(
+            CupertinoIcons.bars,
+            color: kPrimaryColor,
+            size: 28,
+          ),
+        ),
+        title: appBar.title,
+        centerTitle: appBar.centerTitle,
+        actions: appBar.actions,
+        backgroundColor: appBar.backgroundColor ?? Colors.white,
+        elevation: appBar.elevation ?? 0,
+        foregroundColor: appBar.foregroundColor,
+      );
+    }
+    return appBar;
+  }
+
+  /// Simple iOS back button - same style as other pages
+  static Widget _buildIOSBackButton(BuildContext context) {
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      onPressed: () => Navigator.of(context).pop(),
+      child: const Icon(
+        CupertinoIcons.back,
+        color: kPrimaryColor,
+        size: 28,
+      ),
+    );
+  }
+
   /// Convert Material AppBar to CupertinoNavigationBar
   static ObstructingPreferredSizeWidget? _convertAppBarToCupertinoNavBar(
     BuildContext context,
     PreferredSizeWidget appBar,
   ) {
     if (appBar is AppBar) {
+      // Automatically add back button for iOS if:
+      // - no leading widget is provided
+      // - automaticallyImplyLeading is true (default)
+      // - the navigator can pop
+      Widget? leadingWidget = appBar.leading;
+      if (leadingWidget == null &&
+          appBar.automaticallyImplyLeading &&
+          Navigator.of(context).canPop()) {
+        leadingWidget = _buildIOSBackButton(context);
+      }
+
       return CupertinoNavigationBar(
         middle: appBar.title is Text
             ? (appBar.title as Text)
             : Text(appBar.title?.toString() ?? ''),
-        leading: appBar.leading,
+        leading: leadingWidget,
         trailing: appBar.actions != null && appBar.actions!.isNotEmpty
             ? Row(
                 mainAxisSize: MainAxisSize.min,

@@ -98,29 +98,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final profileProvider =
             Provider.of<ProfileProvider>(context, listen: false);
 
-        // Show enhanced loading indicator
-        final loadingSnackBar = ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const SizedBox(width: 16),
-                const Text('Uploading profile picture...'),
-              ],
-            ),
-            backgroundColor: kPrimaryColor,
-            duration: const Duration(
-                seconds: 30), // Very long duration, we'll hide it manually
-            action: SnackBarAction(
-              label: 'Cancel',
-              textColor: Colors.white,
-              onPressed: () {
-                print('⚠️ ProfileScreen: User cancelled upload');
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              },
-            ),
-          ),
-        );
-
         try {
           print('🔄 ProfileScreen: Starting image upload process...');
           await profileProvider.updateProfileImage(image!);
@@ -138,31 +115,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Wait for backend response - no forced refresh
             print('✅ ProfileScreen: Waiting for backend response...');
 
-            // The image will be updated automatically when the provider gets the new URL
-            // No need to force refresh - let the backend response handle it naturally
-
-            // Hide loading and show enhanced success message
+            // Show success message safely
             if (mounted) {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: Colors.white),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Profile picture updated successfully!',
-                          style: const TextStyle(fontSize: 14),
+              try {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.white),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Profile picture updated successfully!',
+                            style: const TextStyle(fontSize: 14),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 4),
                   ),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 4),
-                ),
-              );
-              print('✅ ProfileScreen: Enhanced success message shown');
+                );
+                print('✅ ProfileScreen: Enhanced success message shown');
+              } catch (e) {
+                debugPrint('Could not show success snackbar: $e');
+              }
             }
           } else {
             // Handle error from provider
@@ -172,46 +149,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
         } catch (e) {
           print('❌ ProfileScreen: Upload error: $e');
           rethrow;
-        } finally {
-          // Always hide the loading snackbar
-          if (mounted) {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            print('✅ ProfileScreen: Loading indicator hidden');
-          }
         }
       }
     } catch (e) {
       print('❌ ProfileScreen: Image upload failed with error: $e');
 
-      // Show enhanced error message
+      // Show enhanced error message safely
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Failed to update profile picture: ${e.toString().length > 50 ? e.toString().substring(0, 50) + '...' : e.toString()}',
-                    style: const TextStyle(fontSize: 14),
+        try {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Failed to update profile picture',
+                      style: const TextStyle(fontSize: 14),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
             ),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 6),
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: Colors.white,
-              onPressed: () {
-                print('🔄 ProfileScreen: User retrying image upload');
-                _pickImage();
-              },
-            ),
-          ),
-        );
+          );
+        } catch (snackError) {
+          debugPrint('Could not show error snackbar: $snackError');
+        }
       }
 
       // Reset image state on error
@@ -1291,24 +1257,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Contact Action Methods
   Future<void> _makePhoneCall(String phoneNumber) async {
     try {
-      // Show loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              const SizedBox(width: 16),
-              Text('Opening phone app...'),
-            ],
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-
       // Clean phone number (remove spaces and special characters)
       String cleanNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
 
@@ -1335,10 +1283,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       }
 
-      if (launched) {
-        // Show success message
-        if (mounted) {}
-      } else {
+      if (!launched) {
         _showErrorSnackBar('Phone app not available');
       }
     } catch (e) {
@@ -1348,24 +1293,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _sendEmail(String email) async {
     try {
-      // Show loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              const SizedBox(width: 16),
-              Text('Opening email app...'),
-            ],
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-
       // Clean email address
       String cleanEmail = email.trim();
 
@@ -1396,18 +1323,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       }
 
-      if (launched) {
-        // Show success message
-        if (mounted) {
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   SnackBar(
-          //     content: Text('Email app opened for: $cleanEmail'),
-          //     backgroundColor: Colors.green,
-          //     duration: const Duration(seconds: 2),
-          // //   ),
-          // );
-        }
-      } else {
+      if (!launched) {
         _showErrorSnackBar('Email app not available');
       }
     } catch (e) {
@@ -1417,24 +1333,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _openLocation(String location) async {
     try {
-      // Show loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              const SizedBox(width: 16),
-              Text('Opening maps...'),
-            ],
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-
       // Clean location string
       String cleanLocation = location.trim();
 
@@ -1474,18 +1372,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       }
 
-      if (launched) {
-        // Show success message
-        if (mounted) {
-          // ScaffoldMessenger.of(context).showSnackBar(
-          // SnackBar(
-          //   content: Text('Maps opened for: $cleanLocation'),
-          //   backgroundColor: Colors.green,
-          //   duration: const Duration(seconds: 2),
-          // // ),
-          // );
-        }
-      } else {
+      if (!launched) {
         _showErrorSnackBar('Maps not available');
       }
     } catch (e) {
@@ -1494,13 +1381,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    try {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Could not show snackbar: $message');
+    }
   }
 
   Widget _buildSocialMediaButton({
@@ -1569,24 +1462,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _launchSocialMedia(String url, String platform) async {
     try {
-      // Show loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              const SizedBox(width: 16),
-              Text('Opening $platform...'),
-            ],
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-
       // Clean and validate URL
       String cleanUrl = url.trim();
 
@@ -1628,18 +1503,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       }
 
-      if (launched) {
-        // Show success message
-        if (mounted) {
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   SnackBar(
-          //     content: Text('$platform opened successfully'),
-          //     backgroundColor: Colors.green,
-          //     duration: const Duration(seconds: 2),
-          //   ),
-          // );
-        }
-      } else {
+      if (!launched) {
         _showErrorSnackBar('$platform not available');
       }
     } catch (e) {
@@ -1732,6 +1596,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       appBar: AppBar(
         backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
         title: const Text(
           "Profile",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),

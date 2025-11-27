@@ -382,7 +382,7 @@ class _SearchScreenState extends State<SearchScreen> {
       });
   }
 
-  void _triggerSearch(BuildContext context) {
+  void _triggerSearch(BuildContext context) async {
     _currentPage = 1; // Reset to first page for new search
     final query = [
       _firstNameController.text,
@@ -391,16 +391,17 @@ class _SearchScreenState extends State<SearchScreen> {
         _keywordController.text,
     ].where((s) => s.trim().isNotEmpty).join(' ');
     _lastQuery = query; // Store the query
+
+    // Clear old results before new search
+    final searchProvider = Provider.of<SearchProvider>(context, listen: false);
+    await searchProvider.clearResults();
+
     if (_selectedTab == 0) {
-      Provider.of<SearchProvider>(context, listen: false).search(
-          query,
-          'chapter',
-          _currentPage,
-          _locationController.text,
-          _companyController.text);
+      searchProvider.search(query, 'chapter', _currentPage,
+          _locationController.text, _companyController.text);
     } else {
-      Provider.of<SearchProvider>(context, listen: false).search(query, 'world',
-          _currentPage, _locationController.text, _companyController.text);
+      searchProvider.search(query, 'world', _currentPage,
+          _locationController.text, _companyController.text);
     }
 
     setState(() {
@@ -409,8 +410,12 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _backToForm() {
+    // Clear the search provider results when going back to form
+    Provider.of<SearchProvider>(context, listen: false).clearResults();
     setState(() {
       _showResults = false;
+      _currentPage = 1;
+      _lastQuery = '';
     });
   }
 
@@ -441,7 +446,8 @@ class _SearchScreenState extends State<SearchScreen> {
         elevation: 0,
         leading: _showResults
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black54),
+                icon: const Icon(CupertinoIcons.back,
+                    color: kPrimaryColor, size: 28),
                 onPressed: _backToForm,
               )
             : null,
@@ -584,14 +590,22 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     // Location
                     GestureDetector(
-                      onTap: () =>
-                          setState(() => _showLocation = !_showLocation),
+                      onTap: () => setState(() {
+                        _showLocation = !_showLocation;
+                        if (!_showLocation) {
+                          _locationController.clear();
+                        }
+                      }),
                       child: Row(
                         children: [
                           Checkbox(
                             value: _showLocation,
-                            onChanged: (val) =>
-                                setState(() => _showLocation = val!),
+                            onChanged: (val) => setState(() {
+                              _showLocation = val!;
+                              if (!_showLocation) {
+                                _locationController.clear();
+                              }
+                            }),
                           ),
                           const Text('Location',
                               style: TextStyle(fontWeight: FontWeight.w600)),
@@ -610,13 +624,22 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     // Keyword
                     GestureDetector(
-                      onTap: () => setState(() => _showKeyword = !_showKeyword),
+                      onTap: () => setState(() {
+                        _showKeyword = !_showKeyword;
+                        if (!_showKeyword) {
+                          _keywordController.clear();
+                        }
+                      }),
                       child: Row(
                         children: [
                           Checkbox(
                             value: _showKeyword,
-                            onChanged: (val) =>
-                                setState(() => _showKeyword = val!),
+                            onChanged: (val) => setState(() {
+                              _showKeyword = val!;
+                              if (!_showKeyword) {
+                                _keywordController.clear();
+                              }
+                            }),
                           ),
                           const Text('Keyword',
                               style: TextStyle(fontWeight: FontWeight.w600)),

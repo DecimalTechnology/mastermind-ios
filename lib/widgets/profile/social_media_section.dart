@@ -69,16 +69,7 @@ class SocialMediaSection extends StatelessWidget {
         }
       }
 
-      if (launched) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$platform opened successfully'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      } else {
+      if (!launched) {
         _showErrorSnackBar(context, '$platform not available');
       }
     } catch (e) {
@@ -87,13 +78,18 @@ class SocialMediaSection extends StatelessWidget {
   }
 
   void _showErrorSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      // Context may be invalid after launching external app
+      debugPrint('Could not show snackbar: $message');
+    }
   }
 
   Widget _buildSocialMediaButton({

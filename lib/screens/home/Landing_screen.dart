@@ -46,34 +46,52 @@ class BottomNavbar extends StatelessWidget {
           children: screens,
         ),
         bottomNavigationBar: PlatformUtils.isIOS
-            ? CupertinoTabBar(
-                currentIndex: selectedIndex,
-                onTap: (index) => bottomNavProvider.setIndex(index),
-                backgroundColor: CupertinoColors.systemBackground,
-                activeColor: buttonColor,
-                inactiveColor: CupertinoColors.systemGrey,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.home),
-                    label: "Home",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.search),
-                    label: "Search",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.calendar),
-                    label: "Events",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.group),
-                    label: "Community",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.person),
-                    label: "Profile",
-                  ),
-                ],
+            ? Container(
+                padding: const EdgeInsets.only(top: 15, bottom: 0),
+                child: CupertinoTabBar(
+                  currentIndex: selectedIndex,
+                  onTap: (index) => bottomNavProvider.setIndex(index),
+                  backgroundColor: CupertinoColors.systemBackground,
+                  activeColor: buttonColor,
+                  inactiveColor: CupertinoColors.systemGrey,
+                  items: const [
+                    BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: EdgeInsets.only(top: 4, bottom: 4),
+                        child: Icon(CupertinoIcons.home),
+                      ),
+                      label: "Home",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: EdgeInsets.only(top: 4, bottom: 4),
+                        child: Icon(CupertinoIcons.search),
+                      ),
+                      label: "Search",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: EdgeInsets.only(top: 4, bottom: 4),
+                        child: Icon(CupertinoIcons.calendar),
+                      ),
+                      label: "Events",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: EdgeInsets.only(top: 4, bottom: 4),
+                        child: Icon(CupertinoIcons.group),
+                      ),
+                      label: "Community",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: EdgeInsets.only(top: 4, bottom: 4),
+                        child: Icon(CupertinoIcons.person),
+                      ),
+                      label: "Profile",
+                    ),
+                  ],
+                ),
               )
             : BottomNavigationBar(
                 currentIndex: selectedIndex,
@@ -86,28 +104,58 @@ class BottomNavbar extends StatelessWidget {
                 type: BottomNavigationBarType.fixed,
                 items: const [
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined),
-                    activeIcon: Icon(Icons.home),
+                    icon: Padding(
+                      padding: EdgeInsets.only(top: 4, bottom: 4),
+                      child: Icon(Icons.home_outlined),
+                    ),
+                    activeIcon: Padding(
+                      padding: EdgeInsets.only(top: 4, bottom: 4),
+                      child: Icon(Icons.home),
+                    ),
                     label: "Home",
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.search_outlined),
-                    activeIcon: Icon(Icons.search),
+                    icon: Padding(
+                      padding: EdgeInsets.only(top: 4, bottom: 4),
+                      child: Icon(Icons.search_outlined),
+                    ),
+                    activeIcon: Padding(
+                      padding: EdgeInsets.only(top: 4, bottom: 4),
+                      child: Icon(Icons.search),
+                    ),
                     label: "Search",
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.event_outlined),
-                    activeIcon: Icon(Icons.event),
+                    icon: Padding(
+                      padding: EdgeInsets.only(top: 4, bottom: 4),
+                      child: Icon(Icons.event_outlined),
+                    ),
+                    activeIcon: Padding(
+                      padding: EdgeInsets.only(top: 4, bottom: 4),
+                      child: Icon(Icons.event),
+                    ),
                     label: "Events",
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.groups_outlined),
-                    activeIcon: Icon(Icons.groups),
+                    icon: Padding(
+                      padding: EdgeInsets.only(top: 4, bottom: 4),
+                      child: Icon(Icons.groups_outlined),
+                    ),
+                    activeIcon: Padding(
+                      padding: EdgeInsets.only(top: 4, bottom: 4),
+                      child: Icon(Icons.groups),
+                    ),
                     label: "Community",
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.person_outline),
-                    activeIcon: Icon(Icons.person),
+                    icon: Padding(
+                      padding: EdgeInsets.only(top: 4, bottom: 4),
+                      child: Icon(Icons.person_outline),
+                    ),
+                    activeIcon: Padding(
+                      padding: EdgeInsets.only(top: 4, bottom: 4),
+                      child: Icon(Icons.person),
+                    ),
                     label: "Profile",
                   ),
                 ],

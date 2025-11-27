@@ -12,6 +12,7 @@ import 'package:master_mind/services/navigation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:master_mind/models/profile_model.dart';
 import 'package:master_mind/widgets/shimmer_loading.dart';
+import 'package:master_mind/l10n/app_localizations.dart';
 import 'widgets/index.dart';
 
 class HomeScreen extends BaseScreenWithAppBar {
@@ -370,8 +371,9 @@ class _HomeScreenState extends BaseScreenWithAppBarState<HomeScreen>
     }
 
     // Show loading if we're still waiting for data
+    final l10n = AppLocalizations.of(context);
     return ShimmerLoading.buildSimpleShimmer(
-      message: 'Preparing your dashboard...',
+      message: l10n.loading,
     );
   }
 

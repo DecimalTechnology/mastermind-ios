@@ -38,16 +38,7 @@ class ContactDetails extends StatelessWidget {
         }
       }
 
-      if (launched) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Phone app opened for: $cleanNumber'),
-            backgroundColor: kPrimaryColor,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      } else {
+      if (!launched) {
         _showErrorSnackBar(context, 'Phone app not available');
       }
     } catch (e) {
@@ -87,16 +78,7 @@ class ContactDetails extends StatelessWidget {
         }
       }
 
-      if (launched) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Email app opened for: $cleanEmail'),
-            backgroundColor: kPrimaryColor,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      } else {
+      if (!launched) {
         _showErrorSnackBar(context, 'Email app not available');
       }
     } catch (e) {
@@ -145,16 +127,7 @@ class ContactDetails extends StatelessWidget {
         }
       }
 
-      if (launched) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Maps opened for: $cleanLocation'),
-            backgroundColor: kPrimaryColor,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      } else {
+      if (!launched) {
         _showErrorSnackBar(context, 'Maps not available');
       }
     } catch (e) {
@@ -163,13 +136,18 @@ class ContactDetails extends StatelessWidget {
   }
 
   void _showErrorSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: kPrimaryColor,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: kPrimaryColor,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      // Context may be invalid after launching external app
+      debugPrint('Could not show snackbar: $message');
+    }
   }
 
   @override
@@ -240,7 +218,7 @@ class ContactDetails extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(8.0, 8, 8, 8),
               child: Column(
                 children: profile!.phonenumbers!.map((num) {
-                  final phoneNumber = "+91 ${num?.toString()}" ?? "-";
+                  final phoneNumber = "+91 ${num?.toString() ?? ''}";
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: Row(

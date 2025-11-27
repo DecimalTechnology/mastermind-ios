@@ -417,6 +417,7 @@ class _EventPageState extends State<EventPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: const Text(
           "Events",
           style: TextStyle(
@@ -637,115 +638,133 @@ class _EventPageState extends State<EventPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               vertical: 10, horizontal: 16),
-                          child: Row(
-                            children: [
-                              const Text("Sort By:",
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(width: 10),
-                              // Sort dropdown
-                              Container(
-                                height: 36,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                decoration: BoxDecoration(
-                                  color: _selectedSort != 'chapter'
-                                      ? buttonColor.withValues(alpha: 0.1)
-                                      : const Color(0xFFEDE7F6),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: _selectedSort != 'chapter'
-                                      ? Border.all(color: buttonColor, width: 1)
-                                      : null,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                const Text("Sort By:",
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500)),
+                                const SizedBox(width: 10),
+                                // Sort dropdown
+                                Container(
+                                  height: 36,
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  decoration: BoxDecoration(
+                                    color: _selectedSort != 'chapter'
+                                        ? buttonColor.withValues(alpha: 0.1)
+                                        : const Color(0xFFEDE7F6),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: _selectedSort != 'chapter'
+                                        ? Border.all(
+                                            color: buttonColor, width: 1)
+                                        : null,
+                                  ),
+                                  child: DropdownButton<String>(
+                                    value: _selectedSort,
+                                    hint: const Text("Sort"),
+                                    underline: Container(),
+                                    isDense: true,
+                                    items: _sortOptions
+                                        .map<DropdownMenuItem<String>>(
+                                            (option) {
+                                      return DropdownMenuItem<String>(
+                                        value: option,
+                                        child: Text(
+                                            _sortOptionLabels[option] ?? option,
+                                            style:
+                                                const TextStyle(fontSize: 13)),
+                                      );
+                                    }).toList(),
+                                    onChanged: _onSortChanged,
+                                  ),
                                 ),
-                                child: DropdownButton<String>(
-                                  value: _selectedSort,
-                                  hint: const Text("Sort"),
-                                  underline: Container(),
-                                  items: _sortOptions
-                                      .map<DropdownMenuItem<String>>((option) {
-                                    return DropdownMenuItem<String>(
-                                      value: option,
-                                      child: Text(
-                                          _sortOptionLabels[option] ?? option),
-                                    );
-                                  }).toList(),
-                                  onChanged: _onSortChanged,
+                                const SizedBox(width: 8),
+                                // Year dropdown
+                                Container(
+                                  height: 36,
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEDE7F6),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: DropdownButton<int>(
+                                    value: _selectedYear,
+                                    hint: const Text("Year"),
+                                    underline: Container(),
+                                    isDense: true,
+                                    items: _years
+                                        .map<DropdownMenuItem<int>>((year) {
+                                      return DropdownMenuItem<int>(
+                                        value: year,
+                                        child: Text(year.toString(),
+                                            style:
+                                                const TextStyle(fontSize: 13)),
+                                      );
+                                    }).toList(),
+                                    onChanged: (val) {
+                                      if (val != null) {
+                                        setState(() {
+                                          _selectedYear = val;
+                                          _selectedMonth = DateTime(
+                                              _selectedYear,
+                                              _selectedMonthNum,
+                                              1);
+                                        });
+                                        _loadEvents();
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback(
+                                                (_) => _scrollToCurrentDate());
+                                      }
+                                    },
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              // Year dropdown
-                              Container(
-                                height: 36,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEDE7F6),
-                                  borderRadius: BorderRadius.circular(8),
+                                const SizedBox(width: 8),
+                                // Month dropdown
+                                Container(
+                                  height: 36,
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEDE7F6),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: DropdownButton<int>(
+                                    value: _selectedMonthNum,
+                                    hint: const Text("Month"),
+                                    underline: Container(),
+                                    isDense: true,
+                                    items: List.generate(12, (i) => i + 1)
+                                        .map<DropdownMenuItem<int>>((monthNum) {
+                                      return DropdownMenuItem<int>(
+                                        value: monthNum,
+                                        child: Text(_months[monthNum - 1],
+                                            style:
+                                                const TextStyle(fontSize: 13)),
+                                      );
+                                    }).toList(),
+                                    onChanged: (val) {
+                                      if (val != null) {
+                                        setState(() {
+                                          _selectedMonthNum = val;
+                                          _selectedMonth = DateTime(
+                                              _selectedYear,
+                                              _selectedMonthNum,
+                                              1);
+                                        });
+                                        _loadEvents();
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback(
+                                                (_) => _scrollToCurrentDate());
+                                      }
+                                    },
+                                  ),
                                 ),
-                                child: DropdownButton<int>(
-                                  value: _selectedYear,
-                                  hint: const Text("Year"),
-                                  underline: Container(),
-                                  items:
-                                      _years.map<DropdownMenuItem<int>>((year) {
-                                    return DropdownMenuItem<int>(
-                                      value: year,
-                                      child: Text(year.toString()),
-                                    );
-                                  }).toList(),
-                                  onChanged: (val) {
-                                    if (val != null) {
-                                      setState(() {
-                                        _selectedYear = val;
-                                        _selectedMonth = DateTime(_selectedYear,
-                                            _selectedMonthNum, 1);
-                                      });
-                                      _loadEvents();
-                                      WidgetsBinding.instance
-                                          .addPostFrameCallback(
-                                              (_) => _scrollToCurrentDate());
-                                    }
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              // Month dropdown
-                              Container(
-                                height: 36,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEDE7F6),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: DropdownButton<int>(
-                                  value: _selectedMonthNum,
-                                  hint: const Text("Month"),
-                                  underline: Container(),
-                                  items: List.generate(12, (i) => i + 1)
-                                      .map<DropdownMenuItem<int>>((monthNum) {
-                                    return DropdownMenuItem<int>(
-                                      value: monthNum,
-                                      child: Text(_months[monthNum - 1]),
-                                    );
-                                  }).toList(),
-                                  onChanged: (val) {
-                                    if (val != null) {
-                                      setState(() {
-                                        _selectedMonthNum = val;
-                                        _selectedMonth = DateTime(_selectedYear,
-                                            _selectedMonthNum, 1);
-                                      });
-                                      _loadEvents();
-                                      WidgetsBinding.instance
-                                          .addPostFrameCallback(
-                                              (_) => _scrollToCurrentDate());
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                         // Chapter dropdown (separate row)

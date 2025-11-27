@@ -6,7 +6,7 @@ import 'package:master_mind/screens/home/Landing_screen.dart';
 import 'package:master_mind/screens/auth/Login_form.dart';
 import 'package:master_mind/utils/const.dart';
 import 'package:master_mind/utils/platform_utils.dart';
-// Removed unused import
+import 'package:master_mind/l10n/app_localizations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  String _loadingMessage = "Loading...";
+  String? _loadingMessage;
 
   @override
   void initState() {
@@ -61,6 +61,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
+    final l10n = AppLocalizations.of(context);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
@@ -69,11 +70,11 @@ class _SplashScreenState extends State<SplashScreen>
 
       if (hasStoredData) {
         setState(() {
-          _loadingMessage = "Checking credentials...";
+          _loadingMessage = l10n.checkingCredentials;
         });
       } else {
         setState(() {
-          _loadingMessage = "Welcome to Oxygen Mastermind...";
+          _loadingMessage = l10n.welcomeToApp;
         });
       }
 
@@ -85,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen>
       // Navigate based on authentication status
       if (authProvider.isAuthenticated) {
         setState(() {
-          _loadingMessage = "Welcome back!";
+          _loadingMessage = l10n.welcomeBack;
         });
 
         // Small delay to show the welcome message
@@ -107,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen>
         }
       } else {
         setState(() {
-          _loadingMessage = "Please sign in...";
+          _loadingMessage = l10n.pleaseSignIn;
         });
 
         // Small delay to show the sign in message
@@ -129,7 +130,7 @@ class _SplashScreenState extends State<SplashScreen>
       // If there's an error, navigate to login form
       if (mounted) {
         setState(() {
-          _loadingMessage = "Please sign in...";
+          _loadingMessage = l10n.pleaseSignIn;
         });
 
         await Future.delayed(const Duration(milliseconds: 500));
@@ -161,7 +162,10 @@ class _SplashScreenState extends State<SplashScreen>
       return CupertinoPageScaffold(
         backgroundColor: kBackgroundColor,
         child: SafeArea(
-          child: _buildContent(context),
+          child: Material(
+            color: Colors.transparent,
+            child: _buildContent(context),
+          ),
         ),
       );
     }
@@ -173,6 +177,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildContent(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -207,7 +213,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                       // App Name
                       Text(
-                        "Oxygen Mastermind",
+                        l10n.appTitle,
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -221,7 +227,7 @@ class _SplashScreenState extends State<SplashScreen>
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 0.85,
                         child: Text(
-                          "Creating Extraordinary Results by Igniting the Power of People",
+                          l10n.appTagline,
                           style: TextStyle(
                             fontSize: 16,
                             color: kGreyTextColor,
@@ -255,7 +261,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      _loadingMessage,
+                      _loadingMessage ?? l10n.loading,
                       style: TextStyle(
                         fontSize: 14,
                         color: kGreyTextColor,

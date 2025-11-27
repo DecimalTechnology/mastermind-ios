@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:master_mind/models/event_model.dart';
+import 'package:master_mind/utils/const.dart';
 // Removed unused import
 import 'package:master_mind/utils/platform_utils.dart';
 import 'package:master_mind/widgets/platform_button.dart';
@@ -113,7 +114,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           ),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black54),
+            icon:
+                const Icon(CupertinoIcons.back, color: kPrimaryColor, size: 28),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -156,7 +158,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           ),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black54),
+            icon:
+                const Icon(CupertinoIcons.back, color: kPrimaryColor, size: 28),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),

@@ -133,20 +133,28 @@ class GlobalErrorHandler {
 
   /// Show error snackbar
   static void showErrorSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: kPrimaryColor,
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'Dismiss',
-          textColor: Colors.white,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: kPrimaryColor,
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Dismiss',
+            textColor: Colors.white,
+            onPressed: () {
+              try {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              } catch (e) {
+                debugPrint('Could not hide snackbar: $e');
+              }
+            },
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      debugPrint('Could not show error snackbar: $message - $e');
+    }
   }
 
   /// Handle critical errors that require app restart
@@ -183,6 +191,7 @@ class GlobalErrorHandler {
 }
 
 /// Error boundary widget to catch widget errors
+/// This implementation avoids calling setState during build phase
 class ErrorBoundary extends StatefulWidget {
   final Widget child;
   final Widget Function(String error)? errorBuilder;
@@ -198,40 +207,64 @@ class ErrorBoundary extends StatefulWidget {
 }
 
 class _ErrorBoundaryState extends State<ErrorBoundary> {
-  String? _error;
-
   @override
   void initState() {
     super.initState();
+    // Set up a simple error widget builder that doesn't rely on state
     ErrorWidget.builder = (FlutterErrorDetails details) {
-      setState(() {
-        _error = details.exception.toString();
-      });
-      return widget.errorBuilder?.call(_error!) ??
-          ErrorHandlerWidget(
-            error: _error!,
-            onRetry: () {
-              setState(() {
-                _error = null;
-              });
-            },
-          );
+      // Log the error but don't try to setState during build
+      debugPrint('ErrorBoundary caught error: ${details.exception}');
+
+      // Return a simple error widget wrapped with Directionality for CupertinoApp compatibility
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Container(
+          color: Colors.white,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.red,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Something went wrong',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    details.exception.toString().length > 100
+                        ? '${details.exception.toString().substring(0, 100)}...'
+                        : details.exception.toString(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_error != null) {
-      return widget.errorBuilder?.call(_error!) ??
-          ErrorHandlerWidget(
-            error: _error!,
-            onRetry: () {
-              setState(() {
-                _error = null;
-              });
-            },
-          );
-    }
     return widget.child;
   }
 }

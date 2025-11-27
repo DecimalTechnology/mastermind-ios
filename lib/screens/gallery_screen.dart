@@ -82,6 +82,7 @@ class _GalleryPageState extends State<GalleryPage>
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: const Text(
           'Gallery',
           style: TextStyle(
@@ -788,7 +789,8 @@ class _MediaDetailsPageState extends State<MediaDetailsPage> {
         children: [
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon:
+                const Icon(CupertinoIcons.back, color: Colors.white, size: 28),
           ),
           Expanded(
             child: Text(

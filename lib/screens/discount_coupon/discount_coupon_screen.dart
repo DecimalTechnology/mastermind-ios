@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:master_mind/providers/discount_coupon_provider.dart';
 import 'package:master_mind/models/discount_coupon_model.dart';
@@ -22,6 +23,29 @@ class _DiscountCouponScreenState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DiscountCouponProvider>().loadDiscountCoupons();
     });
+  }
+
+  @override
+  PreferredSizeWidget? buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Icon(CupertinoIcons.back, color: kPrimaryColor, size: 28),
+      ),
+      title: const Text(
+        'Discount Coupons',
+        style: TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+          fontSize: 22,
+          letterSpacing: 1.2,
+        ),
+      ),
+      centerTitle: true,
+    );
   }
 
   @override

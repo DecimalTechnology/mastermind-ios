@@ -48,5 +48,20 @@
 	<string>This app needs access to the microphone to record audio</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app needs to save photos to your photo library</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>mailto</string>
+		<string>https</string>
+		<string>http</string>
+		<string>sms</string>
+		<string>comgooglemaps</string>
+		<string>maps</string>
+		<string>fb</string>
+		<string>twitter</string>
+		<string>instagram</string>
+		<string>linkedin</string>
+		<string>whatsapp</string>
+	</array>
 </dict>
 </plist>

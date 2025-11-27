@@ -340,33 +340,22 @@ abstract class BaseScreenWithAppBarState<T extends BaseScreenWithAppBar>
     extends BaseScreenState<T> {
   @override
   PreferredSizeWidget? buildAppBar() {
-    if (PlatformUtils.isIOS) {
-      return CupertinoNavigationBar(
-        middle: Text(
-          widget.title,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        leading: widget.automaticallyImplyLeading
-            ? CupertinoNavigationBarBackButton(
-                onPressed: () => Navigator.of(context).pop(),
-              )
-            : null,
-        trailing: widget.actions != null && widget.actions!.isNotEmpty
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: widget.actions!,
-              )
-            : null,
-      );
-    }
+    // Always return AppBar - PlatformWidget.scaffold will convert to iOS style
     return AppBar(
-      title: Text(widget.title),
+      title: Text(
+        widget.title,
+        style: const TextStyle(
+          color: kCupertinoModalBarrierColor,
+          fontWeight: FontWeight.bold,
+          fontSize: 22,
+          letterSpacing: 1.2,
+        ),
+      ),
       centerTitle: widget.centerTitle,
       automaticallyImplyLeading: widget.automaticallyImplyLeading,
       actions: widget.actions,
+      backgroundColor: Colors.white,
+      elevation: 0,
     );
   }
 }

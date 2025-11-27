@@ -25,7 +25,7 @@ class ContentScreen extends StatelessWidget {
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: kAppBarIconColor),
+          icon: const Icon(CupertinoIcons.back, color: kPrimaryColor, size: 28),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

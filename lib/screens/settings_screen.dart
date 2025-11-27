@@ -8,6 +8,7 @@ import 'package:master_mind/screens/content_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:master_mind/providers/Auth_provider.dart';
 import 'package:master_mind/screens/auth/Login_form.dart';
+import 'package:master_mind/l10n/app_localizations.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -61,17 +62,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return PlatformWidget.scaffold(
       context: context,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text(
-          "Settings",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        title: Text(
+          l10n.settings,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: kAppBarIconColor),
+          icon: const Icon(CupertinoIcons.back, color: kPrimaryColor, size: 28),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -82,9 +85,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 20),
 
             // Account Settings Section
-            _buildSectionHeader('Account Settings'),
+            _buildSectionHeader(l10n.accountSettings),
             _buildActionTile(
-              'Edit Profile',
+              l10n.editProfile,
               'Update your profile information',
               Icons.person,
               () {
@@ -104,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             _buildActionTile(
-              'Reset Password',
+              l10n.resetPassword,
               'Change your account password',
               Icons.lock,
               () {
@@ -129,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // App Settings Section
             _buildSectionHeader('App Settings'),
             _buildSwitchTile(
-              'Enable Notifications',
+              l10n.notifications,
               'Receive notifications for important updates',
               _notificationsEnabled,
               (value) => setState(() => _notificationsEnabled = value),
@@ -138,7 +141,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 20),
 
             // Support Section
-            _buildSectionHeader('Support'),
+            _buildSectionHeader(l10n.helpSupport),
             _buildActionTile(
               'Help & FAQ',
               'Get help and find answers to common questions',
@@ -187,7 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Legal Section
             _buildSectionHeader('Legal'),
             _buildActionTile(
-              'Privacy Policy',
+              l10n.privacyPolicy,
               'Read our privacy policy',
               Icons.privacy_tip,
               () {
@@ -203,7 +206,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             _buildActionTile(
-              'Terms of Service',
+              l10n.termsConditions,
               'Read our terms of service',
               Icons.article,
               () {
@@ -219,7 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             _buildActionTile(
-              'About',
+              l10n.aboutUs,
               'App information and version details',
               Icons.info_outline,
               _showAboutDialog,
@@ -230,7 +233,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Account Actions Section
             _buildSectionHeader('Account Actions'),
             _buildActionTile(
-              'Logout',
+              l10n.logout,
               'Sign out of your account',
               Icons.logout,
               () => _handleLogout(context),
@@ -242,7 +245,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Version Info
             Center(
               child: Text(
-                'Version 1.0.0',
+                '${l10n.version} 1.0.0',
                 style: TextStyle(
                   color: Colors.grey[600],
                   fontSize: 14,

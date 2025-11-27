@@ -40,7 +40,7 @@ class _ConnectiondetailsState extends State<Connectiondetails> {
         backgroundColor: cardColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: buttonColor),
+          icon: const Icon(CupertinoIcons.back, color: kPrimaryColor, size: 28),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(

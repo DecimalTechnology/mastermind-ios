@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:master_mind/models/discount_coupon_model.dart';
 import 'package:master_mind/screens/discount_coupon/widgets/coupon_card.dart';
 import 'package:master_mind/utils/const.dart';
@@ -19,6 +20,29 @@ class CouponDetailScreen extends BaseScreenWithAppBar {
 
 class _CouponDetailScreenState
     extends BaseScreenWithAppBarState<CouponDetailScreen> {
+  @override
+  PreferredSizeWidget? buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Icon(CupertinoIcons.back, color: kPrimaryColor, size: 28),
+      ),
+      title: const Text(
+        'Coupon Details',
+        style: TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+          fontSize: 22,
+          letterSpacing: 1.2,
+        ),
+      ),
+      centerTitle: true,
+    );
+  }
+
   @override
   Widget buildContent() {
     return SingleChildScrollView(

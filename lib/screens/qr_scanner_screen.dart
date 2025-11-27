@@ -67,7 +67,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               color: Colors.black.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.arrow_back, color: Colors.white),
+            child:
+                const Icon(CupertinoIcons.back, color: Colors.white, size: 28),
           ),
           onPressed: () => Navigator.pop(context),
         ),

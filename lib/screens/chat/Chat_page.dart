@@ -115,7 +115,7 @@ class ChatSearchDelegate extends SearchDelegate {
   @override
   Widget? buildLeading(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.arrow_back),
+      icon: const Icon(CupertinoIcons.back, color: Colors.black54, size: 28),
       onPressed: () {
         close(context, null); // close search
       },

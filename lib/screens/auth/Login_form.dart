@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:master_mind/providers/Auth_provider.dart';
 import 'package:master_mind/screens/home/Landing_screen.dart';
 import 'package:master_mind/screens/Reset_pass_screen.dart';
+import 'package:master_mind/l10n/app_localizations.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -74,6 +75,7 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final authProvider = Provider.of<AuthProvider>(context);
     return PlatformWidget.scaffold(
       context: context,
@@ -89,16 +91,16 @@ class _LoginFormState extends State<LoginForm> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    _buildWelcomeText(),
+                    _buildWelcomeText(l10n),
                     const SizedBox(height: 20),
                     if (authProvider.error != null)
                       _buildErrorMessage(authProvider),
-                    _buildEmailField(authProvider),
+                    _buildEmailField(authProvider, l10n),
                     const SizedBox(height: 20),
-                    _buildPasswordField(authProvider),
+                    _buildPasswordField(authProvider, l10n),
                     const SizedBox(height: 20),
-                    _buildLoginButton(authProvider),
-                    _buildForgotPasswordButton(),
+                    _buildLoginButton(authProvider, l10n),
+                    _buildForgotPasswordButton(l10n),
                   ],
                 ),
               ),
@@ -113,10 +115,10 @@ class _LoginFormState extends State<LoginForm> {
     return Center(child: Image.asset('assets/loginScreen/logo.png'));
   }
 
-  Widget _buildWelcomeText() {
-    return const Text(
-      'Welcome back!',
-      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+  Widget _buildWelcomeText(AppLocalizations l10n) {
+    return Text(
+      l10n.welcomeBack,
+      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
     );
   }
 
@@ -149,11 +151,11 @@ class _LoginFormState extends State<LoginForm> {
     );
   }
 
-  Widget _buildEmailField(AuthProvider authProvider) {
+  Widget _buildEmailField(AuthProvider authProvider, AppLocalizations l10n) {
     if (PlatformUtils.isIOS) {
       return CupertinoTextFormFieldRow(
         controller: _emailController,
-        placeholder: 'Email',
+        placeholder: l10n.email,
         keyboardType: TextInputType.emailAddress,
         prefix: const Padding(
           padding: EdgeInsets.only(left: 8.0),
@@ -162,10 +164,10 @@ class _LoginFormState extends State<LoginForm> {
         onChanged: (_) => _clearError(authProvider),
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return 'Please enter your email';
+            return l10n.emailRequired;
           }
           if (!value.contains('@') || !value.contains('.')) {
-            return 'Please enter a valid email';
+            return l10n.emailInvalid;
           }
           return null;
         },
@@ -174,7 +176,7 @@ class _LoginFormState extends State<LoginForm> {
     return TextFormField(
       controller: _emailController,
       decoration: InputDecoration(
-        labelText: 'Email',
+        labelText: l10n.email,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         prefixIcon: const Icon(Icons.email),
       ),
@@ -182,25 +184,25 @@ class _LoginFormState extends State<LoginForm> {
       onChanged: (_) => _clearError(authProvider),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter your email';
+          return l10n.emailRequired;
         }
         if (!value.contains('@') || !value.contains('.')) {
-          return 'Please enter a valid email';
+          return l10n.emailInvalid;
         }
         return null;
       },
     );
   }
 
-  Widget _buildPasswordField(AuthProvider authProvider) {
+  Widget _buildPasswordField(AuthProvider authProvider, AppLocalizations l10n) {
     if (PlatformUtils.isIOS) {
       return FormField<String>(
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return 'Please enter your password';
+            return l10n.passwordRequired;
           }
           if (value.length < 2) {
-            return 'Password must be at least 6 characters';
+            return l10n.passwordMinLength;
           }
           return null;
         },
@@ -221,7 +223,7 @@ class _LoginFormState extends State<LoginForm> {
                     Expanded(
                       child: CupertinoTextField(
                         controller: _passwordController,
-                        placeholder: 'Password',
+                        placeholder: l10n.password,
                         obscureText: _obscurePassword,
                         prefix: const Padding(
                           padding: EdgeInsets.only(left: 8.0),
@@ -274,7 +276,7 @@ class _LoginFormState extends State<LoginForm> {
       controller: _passwordController,
       obscureText: _obscurePassword,
       decoration: InputDecoration(
-        labelText: 'Password',
+        labelText: l10n.password,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         prefixIcon: const Icon(Icons.lock),
         suffixIcon: IconButton(
@@ -289,17 +291,17 @@ class _LoginFormState extends State<LoginForm> {
       onChanged: (_) => _clearError(authProvider),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter your password';
+          return l10n.passwordRequired;
         }
         if (value.length < 2) {
-          return 'Password must be at least 6 characters';
+          return l10n.passwordMinLength;
         }
         return null;
       },
     );
   }
 
-  Widget _buildLoginButton(AuthProvider authProvider) {
+  Widget _buildLoginButton(AuthProvider authProvider, AppLocalizations l10n) {
     return SizedBox(
       height: 50,
       width: double.infinity,
@@ -310,16 +312,16 @@ class _LoginFormState extends State<LoginForm> {
         foregroundColor: Colors.white,
         borderRadius: BorderRadius.circular(10),
         isLoading: authProvider.isLoading,
-        child: const Text('Login'),
+        child: Text(l10n.login),
       ),
     );
   }
 
-  Widget _buildForgotPasswordButton() {
+  Widget _buildForgotPasswordButton(AppLocalizations l10n) {
     return PlatformTextButton(
       onPressed: _navigateToResetPassword,
       foregroundColor: kPrimaryColor,
-      child: const Text('Forgot Password?'),
+      child: Text(l10n.forgotPassword),
     );
   }
 }

@@ -251,19 +251,25 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      try {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        debugPrint('Could not show success snackbar: $e');
+      }
 
       Navigator.pop(context); // Go back to previous screen instead of replacing
     } catch (e) {
       setState(() {
         _errorMessage = 'Failed to update profile: ${e.toString()}';
       });
-      GlobalErrorHandler.showErrorSnackBar(context, _errorMessage!);
+      if (mounted) {
+        GlobalErrorHandler.showErrorSnackBar(context, _errorMessage!);
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -479,19 +485,29 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         ),
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _phoneControllers.add(TextEditingController());
-                            });
-                          },
-                          icon: const Icon(Icons.add, color: buttonColor),
-                          label: const Text(' Add Phone Number'),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 0),
+                          child: TextButton.icon(
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _phoneControllers.add(TextEditingController());
+                              });
+                            },
+                            icon: const Icon(Icons.add,
+                                color: buttonColor, size: 20),
+                            label: const Text('Add Phone Number'),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
                   _buildTextField(
                     'Email*',
                     _emailController,

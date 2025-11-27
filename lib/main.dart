@@ -47,6 +47,8 @@ import 'package:master_mind/repository/tip_repository.dart';
 import 'package:master_mind/providers/discount_coupon_provider.dart';
 import 'package:master_mind/repository/discount_coupon_repository.dart';
 import 'package:master_mind/screens/discount_coupon/discount_coupon_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:master_mind/l10n/app_localizations.dart';
 
 void main() async {
   // Ensure Flutter is initialized before setting up error handling
@@ -135,9 +137,8 @@ void main() async {
           ),
         ),
       ],
-      child: ErrorBoundary(
-        child: PlatformUtils.isIOS ? _buildCupertinoApp() : _buildMaterialApp(),
-      ),
+      // Use MaterialApp for all platforms since screens use Material widgets
+      child: _buildMaterialApp(),
     ),
   );
 }
@@ -223,6 +224,14 @@ Widget _buildMaterialApp() {
         thickness: 1,
       ),
     ),
+    // Localization configuration
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: AppLocalizations.supportedLocales,
     home: const SplashScreen(),
     onGenerateRoute: AppRouteGenerator.generateRoute,
     routes: {
@@ -254,11 +263,6 @@ Widget _buildMaterialApp() {
       'home': (context) => const SplashScreen(),
       'login': (context) => const SplashScreen(),
       'register': (context) => const SplashScreen(),
-    },
-    builder: (context, child) {
-      return ErrorBoundary(
-        child: child!,
-      );
     },
   );
 }
@@ -297,6 +301,15 @@ Widget _buildCupertinoApp() {
         ),
       ),
     ),
+    // Add Material localizations to support Material widgets in CupertinoApp
+    localizationsDelegates: const [
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: const [
+      Locale('en', 'US'),
+    ],
     home: const SplashScreen(),
     onGenerateRoute: (settings) {
       // Convert Material routes to Cupertino-compatible routes
@@ -354,11 +367,6 @@ Widget _buildCupertinoApp() {
             builder: (_) => const SplashScreen(),
           );
       }
-    },
-    builder: (context, child) {
-      return ErrorBoundary(
-        child: child!,
-      );
     },
   );
 }

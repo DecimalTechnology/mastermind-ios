@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:master_mind/utils/const.dart';
+import 'package:master_mind/utils/platform_utils.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onActivityFeedPressed;
@@ -14,74 +16,46 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      elevation: 2,
+      elevation: 0,
       backgroundColor: Colors.white,
-      foregroundColor: kPrimaryColor,
-      title: _buildAppBarTitle(),
-      centerTitle: false,
-      actions: _buildAppBarActions(),
-    );
-  }
-
-  Widget _buildAppBarTitle() {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: kPrimaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            Icons.home_rounded,
-            color: kPrimaryColor,
-            size: 20,
-          ),
+      automaticallyImplyLeading: false,
+      leading: PlatformUtils.isIOS
+          ? CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => Scaffold.of(context).openDrawer(),
+              child: const Icon(
+                CupertinoIcons.bars,
+                color: kPrimaryColor,
+                size: 28,
+              ),
+            )
+          : IconButton(
+              onPressed: () => Scaffold.of(context).openDrawer(),
+              icon: const Icon(Icons.menu, color: buttonColor),
+              tooltip: 'Menu',
+            ),
+      title: const Text(
+        "Dashboard",
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
         ),
-        const SizedBox(width: 12),
-        const Text(
-          "Dashboard",
-          style: TextStyle(
-            color: kPrimaryColor,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+      ),
+      centerTitle: true,
+      actions: [
+        IconButton(
+          onPressed: onActivityFeedPressed,
+          icon: const Icon(Icons.notifications_outlined, color: buttonColor),
+          tooltip: 'Activity Feed',
+        ),
+        IconButton(
+          onPressed: onSettingsPressed,
+          icon: const Icon(Icons.settings_outlined, color: buttonColor),
+          tooltip: 'Settings',
         ),
       ],
-    );
-  }
-
-  List<Widget> _buildAppBarActions() {
-    return [
-      _buildActionButton(
-        icon: Icons.notifications_outlined,
-        tooltip: 'Activity Feed',
-        onPressed: onActivityFeedPressed,
-      ),
-      _buildActionButton(
-        icon: Icons.settings_outlined,
-        tooltip: 'Settings',
-        onPressed: onSettingsPressed,
-      ),
-    ];
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        tooltip: tooltip,
-      ),
     );
   }
 

@@ -87,7 +87,8 @@ class _RequestedTestimonialsScreenState
                         ],
                       ),
                       child: IconButton(
-                        icon: Icon(Icons.arrow_back, color: kPrimaryColor),
+                        icon: Icon(CupertinoIcons.back,
+                            color: kPrimaryColor, size: 28),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ),
