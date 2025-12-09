@@ -153,15 +153,7 @@ class _LoginFormState extends State<LoginForm> {
 
   Widget _buildEmailField(AuthProvider authProvider, AppLocalizations l10n) {
     if (PlatformUtils.isIOS) {
-      return CupertinoTextFormFieldRow(
-        controller: _emailController,
-        placeholder: l10n.email,
-        keyboardType: TextInputType.emailAddress,
-        prefix: const Padding(
-          padding: EdgeInsets.only(left: 8.0),
-          child: Icon(CupertinoIcons.mail, color: CupertinoColors.systemGrey),
-        ),
-        onChanged: (_) => _clearError(authProvider),
+      return FormField<String>(
         validator: (value) {
           if (value == null || value.isEmpty) {
             return l10n.emailRequired;
@@ -170,6 +162,49 @@ class _LoginFormState extends State<LoginForm> {
             return l10n.emailInvalid;
           }
           return null;
+        },
+        builder: (FormFieldState<String> field) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemGrey6,
+                  borderRadius: BorderRadius.circular(8),
+                  border: field.hasError
+                      ? Border.all(color: CupertinoColors.destructiveRed)
+                      : null,
+                ),
+                child: CupertinoTextField(
+                  controller: _emailController,
+                  placeholder: l10n.email,
+                  keyboardType: TextInputType.emailAddress,
+                  prefix: const Padding(
+                    padding: EdgeInsets.only(left: 8.0),
+                    child: Icon(CupertinoIcons.mail,
+                        color: CupertinoColors.systemGrey),
+                  ),
+                  onChanged: (value) {
+                    field.didChange(value);
+                    _clearError(authProvider);
+                  },
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(),
+                ),
+              ),
+              if (field.hasError)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, left: 8),
+                  child: Text(
+                    field.errorText!,
+                    style: const TextStyle(
+                      color: CupertinoColors.destructiveRed,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
+          );
         },
       );
     }
