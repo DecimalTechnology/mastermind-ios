@@ -225,7 +225,7 @@ Widget _buildMaterialApp() {
       ),
     ),
     // Localization configuration
-    localizationsDelegates: const [
+    localizationsDelegates: [
       AppLocalizations.delegate,
       GlobalMaterialLocalizations.delegate,
       GlobalWidgetsLocalizations.delegate,

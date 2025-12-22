@@ -97,26 +97,16 @@ class AccountabilitySlipCard extends StatelessWidget {
                       builder: (context) {
                         final now = DateTime.now();
 
-                        // Parse the time string (format: "6.00pm" or "6:00pm")
-                        int hour = 0;
-                        int minute = 0;
+                        // Convert UTC date to local time first, then extract components
+                        final localDate = slip.date.toLocal();
 
-                        try {
-                          // Extract time directly from DateTime
-                          hour = slip.date.hour;
-                          minute = slip.date.minute;
-                        } catch (e) {
-                          // Fallback to default values if parsing fails
-                          hour = 0;
-                          minute = 0;
-                        }
-
+                        // Create meeting DateTime in local timezone
                         final meetingDateTime = DateTime(
-                          slip.date.year,
-                          slip.date.month,
-                          slip.date.day,
-                          hour,
-                          minute,
+                          localDate.year,
+                          localDate.month,
+                          localDate.day,
+                          localDate.hour,
+                          localDate.minute,
                         );
                         final isPast = meetingDateTime.isBefore(now);
 
@@ -267,26 +257,16 @@ class AccountabilitySlipCard extends StatelessWidget {
                         builder: (context) {
                           final now = DateTime.now();
 
-                          // Parse the time string (format: "6.00pm" or "6:00pm")
-                          int hour = 0;
-                          int minute = 0;
+                          // Convert UTC date to local time first, then extract components
+                          final localDate = slip.date.toLocal();
 
-                          try {
-                            // Extract time directly from DateTime
-                            hour = slip.date.hour;
-                            minute = slip.date.minute;
-                          } catch (e) {
-                            // Fallback to default values if parsing fails
-                            hour = 0;
-                            minute = 0;
-                          }
-
+                          // Create meeting DateTime in local timezone
                           final meetingDateTime = DateTime(
-                            slip.date.year,
-                            slip.date.month,
-                            slip.date.day,
-                            hour,
-                            minute,
+                            localDate.year,
+                            localDate.month,
+                            localDate.day,
+                            localDate.hour,
+                            localDate.minute,
                           );
                           final isPast = meetingDateTime.isBefore(now);
 

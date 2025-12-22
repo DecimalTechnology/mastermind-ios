@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:master_mind/providers/Auth_provider.dart';
-import 'package:master_mind/providers/profile_provider.dart';
 import 'package:master_mind/screens/auth/Login_form.dart';
 import 'package:master_mind/screens/connection/connectionDetails.dart';
 import 'package:master_mind/screens/testimonial/testimonial_listing_screen.dart';
@@ -10,26 +10,50 @@ import 'package:master_mind/screens/Accountability/accountability_page.dart';
 import 'package:master_mind/screens/gallery_screen.dart';
 import 'package:master_mind/screens/settings_screen.dart';
 import 'package:master_mind/utils/const.dart';
+import 'package:master_mind/utils/platform_utils.dart';
+import 'package:master_mind/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
 
   Future<void> _handleLogout(BuildContext context) async {
+    if (!context.mounted) return;
+    final l10n = AppLocalizations.of(context);
+    
+    // Show confirmation dialog
+    final shouldLogout = await PlatformWidget.showLogoutDialog(
+      context: context,
+      confirmMessage: l10n.confirmLogout,
+      logoutText: l10n.logout,
+      cancelText: l10n.cancel,
+    );
+
+    // If user cancelled, return early
+    if (shouldLogout != true || !context.mounted) {
+      return;
+    }
+
+    final authProvider = context.read<AuthProvider>();
     try {
-      await context.read<AuthProvider>().logout();
-      if (context.mounted) {
+      await authProvider.logout();
+      if (!context.mounted) return;
+      if (PlatformUtils.isIOS) {
+        Navigator.of(context).pushAndRemoveUntil(
+          CupertinoPageRoute(builder: (context) => const LoginForm()),
+          (route) => false,
+        );
+      } else {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginForm()),
           (route) => false,
         );
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Logout failed: ${e.toString()}')),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: ${e.toString()}')),
+      );
     }
   }
 

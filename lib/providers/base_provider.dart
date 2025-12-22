@@ -24,7 +24,12 @@ abstract class BaseProvider extends ChangeNotifier {
     bool showErrorSnackBar = false,
     BuildContext? snackBarContext,
   }) async {
-    if (_isLoading) return null;
+    if (_isLoading) {
+      // Avoid silently skipping operations (this can look like "API not working")
+      // and can cause the UI to show success without doing anything.
+      setError('Please wait… another request is already in progress');
+      return null;
+    }
 
     try {
       _startLoading();
@@ -119,6 +124,13 @@ abstract class BaseProvider extends ChangeNotifier {
 
   /// Finish loading state
   void _finishLoading() {
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Force-stop loading state (used for user cancellation of long-running operations)
+  @protected
+  void stopLoading() {
     _isLoading = false;
     notifyListeners();
   }

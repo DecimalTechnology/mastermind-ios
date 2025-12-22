@@ -2,21 +2,20 @@ import 'dart:io';
 import 'package:master_mind/models/profile_model.dart';
 import 'package:master_mind/repository/profileRepo/profile_repo.dart';
 import 'package:master_mind/providers/base_provider.dart';
+import 'package:master_mind/core/error_handling/error_handling.dart';
 
 class ProfileProvider extends BaseProvider {
   final ProfileRepository _repository;
   ProfileModel? _profile;
+  bool _isUploadingProfileImage = false;
 
   ProfileProvider({required ProfileRepository repository})
       : _repository = repository;
 
   ProfileModel? get profile => _profile;
+  bool get isUploadingProfileImage => _isUploadingProfileImage;
 
   Future<void> loadProfile() async {
-    // Clear existing profile data first
-    _profile = null;
-    notifyListeners();
-
     await executeAsync(
       () async {
         final profile = await _repository.getProfile();
@@ -58,46 +57,57 @@ class ProfileProvider extends BaseProvider {
   }
 
   Future<void> updateProfileImage(File imageFile) async {
-    await executeAsync(
-      () async {
-        print('🔄 ProfileProvider: Starting image upload...');
+    // IMPORTANT:
+    // Do NOT block image upload just because some other profile request is in-flight.
+    // BaseProvider has a single isLoading flag; if loadProfile() is slow, it can prevent uploads.
+    if (_isUploadingProfileImage) {
+      setError('Upload already in progress');
+      return;
+    }
 
-        try {
-          // Upload the image
-          final newImageUrl = await _repository.uploadProfileImage(imageFile);
-          print('✅ ProfileProvider: Image uploaded successfully: $newImageUrl');
+    _isUploadingProfileImage = true;
+    clearError();
+    notifyListeners();
 
-          // Update the local profile with the new image URL
-          if (_profile != null) {
-            print(
-                '🔄 ProfileProvider: Updating local profile with new image URL...');
+    print('🔄 ProfileProvider: Starting image upload...');
 
-            // Add a timestamp to the new image URL to bust cache
-            final timestamp = DateTime.now().millisecondsSinceEpoch;
-            final urlWithTimestamp = newImageUrl.contains('?')
-                ? '$newImageUrl&t=$timestamp'
-                : '$newImageUrl?t=$timestamp';
+    try {
+      final newImageUrl = await _repository.uploadProfileImage(imageFile);
+      print('✅ ProfileProvider: Image uploaded successfully: $newImageUrl');
 
-            _profile = _profile!.copyWith(imageUrl: urlWithTimestamp);
+      if (_profile == null) {
+        // If profile isn't loaded yet, still succeed and let caller refresh profile later.
+        setSuccessMessage('Profile picture updated successfully');
+        return;
+      }
 
-            // Single UI update - let the backend response handle the rest
-            notifyListeners();
-            print(
-                '✅ ProfileProvider: Profile updated with new image URL: $urlWithTimestamp');
-          } else {
-            throw Exception('Profile not loaded');
-          }
+      // Cache-bust so the new image is fetched immediately.
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final urlWithTimestamp = newImageUrl.contains('?')
+          ? '$newImageUrl&t=$timestamp'
+          : '$newImageUrl?t=$timestamp';
 
-          setSuccessMessage('Profile picture updated successfully');
-          print('✅ ProfileProvider: Image update completed successfully');
-          return newImageUrl;
-        } catch (e) {
-          print('❌ ProfileProvider: Image upload failed: $e');
-          rethrow;
-        }
-      },
-      context: 'updateProfileImage',
-    );
+      _profile = _profile!.copyWith(imageUrl: urlWithTimestamp);
+      notifyListeners();
+      setSuccessMessage('Profile picture updated successfully');
+    } catch (e) {
+      // Convert to a user-friendly error message and store it.
+      final msg = ErrorHandler.getErrorMessage(e);
+      setError(msg);
+      print('❌ ProfileProvider: Image upload failed: $e');
+      rethrow;
+    } finally {
+      _isUploadingProfileImage = false;
+      notifyListeners();
+    }
+  }
+
+  void cancelProfileImageUpload() {
+    // Cancel the underlying HTTP request and ensure UI is unlocked.
+    _repository.cancelActiveProfileImageUpload();
+    _isUploadingProfileImage = false;
+    stopLoading();
+    setError('Upload cancelled');
   }
 
   void clearData() {
@@ -176,11 +186,9 @@ class ProfileProvider extends BaseProvider {
     print('🔄 ProfileProvider: Force reloading profile...');
     try {
       final updatedProfile = await _repository.getProfile();
-      if (updatedProfile != null) {
-        _profile = updatedProfile;
-        notifyListeners();
-        print('✅ ProfileProvider: Profile force reloaded successfully');
-      }
+      _profile = updatedProfile;
+      notifyListeners();
+      print('✅ ProfileProvider: Profile force reloaded successfully');
     } catch (e) {
       print('❌ ProfileProvider: Force reload failed: $e');
     }

@@ -53,11 +53,52 @@ class Event {
 
   factory Event.fromJson(Map<String, dynamic> json) {
     try {
+      final rawDate = json['date'];
+      print(
+          '🕐 Event.fromJson: Raw date field: "$rawDate" (type: ${rawDate.runtimeType})');
+
+      DateTime parsedDate;
+      if (rawDate == null) {
+        parsedDate = DateTime.now();
+        print('⚠️  Event.fromJson: date is null, using DateTime.now()');
+      } else if (rawDate is String) {
+        try {
+          String dateStr = rawDate.trim();
+
+          // If the string doesn't have timezone info (no 'Z' or timezone offset),
+          // treat it as UTC (servers typically store dates in UTC)
+          final hasTimezone = dateStr.endsWith('Z') ||
+              RegExp(r'[+-]\d{2}:?\d{2}$').hasMatch(dateStr);
+
+          if (!hasTimezone && dateStr.contains('T')) {
+            // No timezone indicator - assume UTC and append 'Z'
+            dateStr = '$dateStr Z';
+            print('   → No timezone info, treating as UTC: "$dateStr"');
+          }
+
+          parsedDate = DateTime.parse(dateStr);
+          // Ensure we have a UTC DateTime for consistency
+          final utcParsed = parsedDate.isUtc ? parsedDate : parsedDate.toUtc();
+
+          print('   → Parsed as: $utcParsed (isUtc: ${utcParsed.isUtc})');
+          print(
+              '   → UTC: ${utcParsed.toUtc()}, Local: ${utcParsed.toLocal()}');
+          parsedDate = utcParsed;
+        } catch (e) {
+          print('❌ Event.fromJson: Error parsing date "$rawDate": $e');
+          parsedDate = DateTime.now().toUtc();
+        }
+      } else {
+        print(
+            '⚠️  Event.fromJson: Unexpected date type ${rawDate.runtimeType}');
+        parsedDate = DateTime.now();
+      }
+
       final event = Event(
         id: json['_id'] ?? '',
         name: json['name'] ?? '',
         description: json['description'] ?? '',
-        date: DateTime.parse(json['date'] ?? DateTime.now().toIso8601String()),
+        date: parsedDate,
         time: json['time'] ?? '',
         place: json['place'] ?? '',
         duration: json['duration'] ?? '',
@@ -71,9 +112,9 @@ class Event {
         status: json['status'] ?? '',
         customFields: json['customFields'],
         rsvp: json['rsvp'] ?? [],
-        createdAt: DateTime.parse(
+        createdAt: Event._parseDateTimeSafely(
             json['createdAt'] ?? DateTime.now().toIso8601String()),
-        updatedAt: DateTime.parse(
+        updatedAt: Event._parseDateTimeSafely(
             json['updatedAt'] ?? DateTime.now().toIso8601String()),
         version: json['__v'] ?? 0,
         registered: json['registered'] ?? false,
@@ -134,6 +175,28 @@ class Event {
     }
     return [];
   }
+
+  // Helper method to parse DateTime safely (for createdAt, updatedAt)
+  static DateTime _parseDateTimeSafely(dynamic dateValue) {
+    if (dateValue == null) return DateTime.now().toUtc();
+    if (dateValue is DateTime)
+      return dateValue.isUtc ? dateValue : dateValue.toUtc();
+    if (dateValue is String) {
+      try {
+        String dateStr = dateValue.trim();
+        final hasTimezone = dateStr.endsWith('Z') ||
+            RegExp(r'[+-]\d{2}:?\d{2}$').hasMatch(dateStr);
+        if (!hasTimezone && dateStr.contains('T')) {
+          dateStr = '$dateStr Z';
+        }
+        final parsed = DateTime.parse(dateStr);
+        return parsed.isUtc ? parsed : parsed.toUtc();
+      } catch (e) {
+        return DateTime.now().toUtc();
+      }
+    }
+    return DateTime.now().toUtc();
+  }
 }
 
 class Meeting {
@@ -168,8 +231,10 @@ class Meeting {
         time: json['time']?.toString() ?? '',
         userId: json['userId']?.toString() ?? '',
         members: _parseMembers(json['members']),
-        createdAt: _parseDateTime(json['createdAt']),
-        updatedAt: _parseDateTime(json['updatedAt']),
+        createdAt: _parseDateTime(
+            json['createdAt'] ?? DateTime.now().toIso8601String()),
+        updatedAt: _parseDateTime(
+            json['updatedAt'] ?? DateTime.now().toIso8601String()),
         version: json['__v'] is int ? json['__v'] : 0,
       );
     } catch (e) {
@@ -178,17 +243,48 @@ class Meeting {
   }
 
   static DateTime _parseDateTime(dynamic dateValue) {
-    if (dateValue == null) return DateTime.now();
-    if (dateValue is DateTime) return dateValue;
+    if (dateValue == null) {
+      print(
+          '⚠️  Meeting._parseDateTime: dateValue is null, using DateTime.now()');
+      return DateTime.now().toUtc();
+    }
+    if (dateValue is DateTime) {
+      print(
+          '⚠️  Meeting._parseDateTime: dateValue is already DateTime: $dateValue');
+      return dateValue.isUtc ? dateValue : dateValue.toUtc();
+    }
     if (dateValue is String) {
       try {
-        return DateTime.parse(dateValue);
+        print('🕐 Meeting._parseDateTime: Parsing string "$dateValue"');
+
+        String dateStr = dateValue.trim();
+
+        // If the string doesn't have timezone info (no 'Z' or timezone offset),
+        // treat it as UTC (servers typically store dates in UTC)
+        final hasTimezone = dateStr.endsWith('Z') ||
+            RegExp(r'[+-]\d{2}:?\d{2}$').hasMatch(dateStr);
+
+        if (!hasTimezone && dateStr.contains('T')) {
+          // No timezone indicator - assume UTC and append 'Z'
+          dateStr = '$dateStr Z';
+          print('   → No timezone info, treating as UTC: "$dateStr"');
+        }
+
+        final parsed = DateTime.parse(dateStr);
+        // Ensure we have a UTC DateTime for consistency
+        final utcParsed = parsed.isUtc ? parsed : parsed.toUtc();
+
+        print('   → Parsed as: $utcParsed (isUtc: ${utcParsed.isUtc})');
+        print('   → UTC: ${utcParsed.toUtc()}, Local: ${utcParsed.toLocal()}');
+        return utcParsed;
       } catch (e) {
-        print('Error parsing date: $dateValue');
-        return DateTime.now();
+        print('❌ Error parsing date: $dateValue - $e');
+        return DateTime.now().toUtc();
       }
     }
-    return DateTime.now();
+    print(
+        '⚠️  Meeting._parseDateTime: Unexpected type ${dateValue.runtimeType}, using DateTime.now()');
+    return DateTime.now().toUtc();
   }
 
   static List<String> _parseMembers(dynamic membersValue) {

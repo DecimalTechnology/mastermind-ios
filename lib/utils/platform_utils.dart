@@ -329,6 +329,58 @@ class PlatformWidget {
     );
   }
 
+  /// Show logout confirmation dialog (platform-aware)
+  static Future<bool?> showLogoutDialog({
+    required BuildContext context,
+    required String confirmMessage,
+    required String logoutText,
+    required String cancelText,
+  }) {
+    if (PlatformUtils.isIOS) {
+      return showCupertinoDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => CupertinoAlertDialog(
+          title: Text(logoutText),
+          content: Text(confirmMessage),
+          actions: [
+            CupertinoDialogAction(
+              isDestructiveAction: false,
+              child: Text(cancelText),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              child: Text(logoutText),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        ),
+      );
+    }
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        title: Text(logoutText),
+        content: Text(confirmMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(cancelText),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: Text(logoutText),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Build platform-aware loading indicator
   static Widget loadingIndicator({
     Color? color,

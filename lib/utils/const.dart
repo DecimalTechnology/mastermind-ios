@@ -84,6 +84,9 @@ const double kElevationSmall = 2.0;
 const double kElevationMedium = 4.0;
 const double kElevationLarge = 8.0;
 
+// Debug and logging constants
+const bool kEnableVerboseLogs = false; // Set to true to enable verbose debug logging
+
 // final baseurl = 'http://175.1.1.47:3000'; //adarsh
 // final baseurl = 'http://175.1.1.95:3000'; //sebastian
 final baseurl = 'http://15.207.109.75:3000'; //Aws

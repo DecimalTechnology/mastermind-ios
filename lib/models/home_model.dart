@@ -245,16 +245,48 @@ class NextMeeting {
   }
 
   static DateTime _parseDateTime(dynamic dateValue) {
-    if (dateValue == null) return DateTime.now();
-    if (dateValue is DateTime) return dateValue;
+    if (dateValue == null) {
+      print(
+          '⚠️  NextMeeting._parseDateTime: dateValue is null, using DateTime.now()');
+      return DateTime.now().toUtc();
+    }
+    if (dateValue is DateTime) {
+      print(
+          '⚠️  NextMeeting._parseDateTime: dateValue is already DateTime: $dateValue');
+      return dateValue.isUtc ? dateValue : dateValue.toUtc();
+    }
     if (dateValue is String) {
       try {
-        return DateTime.parse(dateValue);
+        print('🕐 NextMeeting._parseDateTime: Parsing string "$dateValue"');
+
+        String dateStr = dateValue.trim();
+
+        // If the string doesn't have timezone info (no 'Z' or timezone offset),
+        // treat it as UTC (servers typically store dates in UTC)
+        final hasTimezone = dateStr.endsWith('Z') ||
+            RegExp(r'[+-]\d{2}:?\d{2}$').hasMatch(dateStr);
+
+        if (!hasTimezone && dateStr.contains('T')) {
+          // No timezone indicator - assume UTC and append 'Z'
+          dateStr = '$dateStr Z';
+          print('   → No timezone info, treating as UTC: "$dateStr"');
+        }
+
+        final parsed = DateTime.parse(dateStr);
+        // Ensure we have a UTC DateTime for consistency
+        final utcParsed = parsed.isUtc ? parsed : parsed.toUtc();
+
+        print('   → Parsed as: $utcParsed (isUtc: ${utcParsed.isUtc})');
+        print('   → UTC: ${utcParsed.toUtc()}, Local: ${utcParsed.toLocal()}');
+        return utcParsed;
       } catch (e) {
-        return DateTime.now();
+        print('❌ Error parsing date: $dateValue - $e');
+        return DateTime.now().toUtc();
       }
     }
-    return DateTime.now();
+    print(
+        '⚠️  NextMeeting._parseDateTime: Unexpected type ${dateValue.runtimeType}, using DateTime.now()');
+    return DateTime.now().toUtc();
   }
 
   static List<String> _parseMembers(dynamic membersValue) {

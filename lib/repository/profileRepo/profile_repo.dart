@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -12,6 +13,30 @@ class ProfileRepository {
   final String baseUrl = '$baseurl/v1/profile';
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   final HttpService _httpService = HttpService();
+
+  // Used to allow cancelling an in-flight profile image upload.
+  http.Client? _activeUploadClient;
+
+  void cancelActiveProfileImageUpload() {
+    try {
+      _activeUploadClient?.close();
+    } catch (_) {
+      // ignore
+    } finally {
+      _activeUploadClient = null;
+    }
+  }
+
+  String _normalizeImageUrl(String url) {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) return trimmed;
+
+    // Prefer HTTPS to avoid cleartext blocks / flaky behavior on Android networks.
+    if (trimmed.startsWith('http://')) {
+      return 'https://${trimmed.substring('http://'.length)}';
+    }
+    return trimmed;
+  }
 
   Future<String?> getAuthToken() async {
     try {
@@ -101,25 +126,103 @@ class ProfileRepository {
       print('🚀 Uploading profile image to: $baseurl$endpoint');
       print('📁 File size: ${(fileSize / 1024).toStringAsFixed(2)}KB');
 
-      // Create multipart request with PATCH method
-      var request =
-          http.MultipartRequest('PATCH', Uri.parse('$baseurl$endpoint'));
-      request.headers['Authorization'] = 'Bearer $accessToken';
-      request.headers['Content-Type'] = 'multipart/form-data';
+      // IMPORTANT:
+      // - Do NOT manually set Content-Type for multipart requests.
+      //   The http package sets the correct boundary automatically.
+      // - Use the same auth header style as the rest of the app to avoid intermittent 401s.
+      final uri = Uri.parse('$baseurl$endpoint');
 
-      // Add image file
-      final imageField =
-          await http.MultipartFile.fromPath('image', imageFile.path);
-      request.files.add(imageField);
+      Future<http.Response> sendOnce({required String method}) async {
+        // Cancel any previous in-flight upload before starting a new one.
+        cancelActiveProfileImageUpload();
 
-      // Add additional fields that might be required
-      request.fields['type'] = 'profile';
-      request.fields['category'] = 'profile-picture';
+        final client = http.Client();
+        _activeUploadClient = client;
 
-      print('📤 Sending PATCH request to: $baseurl$endpoint');
-      final streamedResponse =
-          await request.send().timeout(const Duration(seconds: 60));
-      final response = await http.Response.fromStream(streamedResponse);
+        try {
+          final request = http.MultipartRequest(method, uri);
+
+          // Keep auth header consistent with other endpoints in this repo.
+          // Some backend endpoints expect `access-token`, some expect `Authorization: Bearer`.
+          // Sending both prevents intermittent auth failures across environments.
+          request.headers['access-token'] = accessToken;
+          request.headers['Authorization'] = 'Bearer $accessToken';
+          request.headers['Accept'] = 'application/json';
+
+          // Add image file
+          final imageField =
+              await http.MultipartFile.fromPath('image', imageFile.path);
+          request.files.add(imageField);
+
+          // Extra fields (safe even if backend ignores them)
+          request.fields['type'] = 'profile';
+          request.fields['category'] = 'profile-picture';
+
+          print('📤 Sending $method multipart request to: $uri');
+          final streamedResponse =
+              await client.send(request).timeout(const Duration(seconds: 60));
+          return await http.Response.fromStream(streamedResponse);
+        } finally {
+          // Always close the client to avoid socket leaks.
+          try {
+            client.close();
+          } catch (_) {
+            // ignore
+          }
+          if (identical(_activeUploadClient, client)) {
+            _activeUploadClient = null;
+          }
+        }
+      }
+
+      // Retry a couple of times on transient failures (timeouts / flaky networks / 5xx).
+      http.Response? response;
+      const maxAttempts = 3;
+      for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          // Prefer PATCH (your backend uses PATCH), but fall back to POST if the server rejects PATCH.
+          response = await sendOnce(method: 'PATCH');
+          if (response.statusCode == 405 || response.statusCode == 404) {
+            print(
+                '⚠️ Server rejected PATCH (HTTP ${response.statusCode}). Retrying once with POST...');
+            response = await sendOnce(method: 'POST');
+          }
+
+          // Retry on transient HTTP codes
+          if (response.statusCode == 408 ||
+              response.statusCode == 429 ||
+              response.statusCode == 500 ||
+              response.statusCode == 502 ||
+              response.statusCode == 503 ||
+              response.statusCode == 504) {
+            if (attempt < maxAttempts) {
+              final backoffMs = 400 * attempt * attempt;
+              print(
+                  '⚠️ Transient upload error (HTTP ${response.statusCode}). Retrying in ${backoffMs}ms... (attempt $attempt/$maxAttempts)');
+              await Future.delayed(Duration(milliseconds: backoffMs));
+              continue;
+            }
+          }
+
+          break; // success or non-retryable code
+        } on SocketException catch (e) {
+          if (attempt >= maxAttempts) rethrow;
+          final backoffMs = 400 * attempt * attempt;
+          print(
+              '⚠️ Upload network error: $e. Retrying in ${backoffMs}ms... (attempt $attempt/$maxAttempts)');
+          await Future.delayed(Duration(milliseconds: backoffMs));
+        } on TimeoutException catch (e) {
+          if (attempt >= maxAttempts) rethrow;
+          final backoffMs = 400 * attempt * attempt;
+          print(
+              '⚠️ Upload timeout: $e. Retrying in ${backoffMs}ms... (attempt $attempt/$maxAttempts)');
+          await Future.delayed(Duration(milliseconds: backoffMs));
+        }
+      }
+
+      if (response == null) {
+        throw AppException('Failed to upload profile image (no response)');
+      }
 
       print('📥 Response status: ${response.statusCode}');
       print('📥 Response body: ${response.body}');
@@ -178,18 +281,21 @@ class ProfileRepository {
           // Validate URL format
           if (imageUrl.startsWith('http://') ||
               imageUrl.startsWith('https://')) {
-            print('✅ Final image URL: $imageUrl');
-            return imageUrl;
+            final normalized = _normalizeImageUrl(imageUrl);
+            print('✅ Final image URL: $normalized');
+            return normalized;
           } else {
             // Try to construct full URL
             if (imageUrl.startsWith('/')) {
               final fullUrl = '$baseurl$imageUrl';
-              print('✅ Constructed full URL: $fullUrl');
-              return fullUrl;
+              final normalized = _normalizeImageUrl(fullUrl);
+              print('✅ Constructed full URL: $normalized');
+              return normalized;
             } else {
               final fullUrl = '$baseurl/$imageUrl';
-              print('✅ Constructed full URL: $fullUrl');
-              return fullUrl;
+              final normalized = _normalizeImageUrl(fullUrl);
+              print('✅ Constructed full URL: $normalized');
+              return normalized;
             }
           }
         } catch (e) {

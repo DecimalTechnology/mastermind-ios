@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:master_mind/models/accountability_slip.dart';
 import 'package:master_mind/utils/const.dart';
-import 'package:master_mind/utils/platform_utils.dart';
 import 'package:intl/intl.dart';
 
 class AccountabilityDetailPage extends StatelessWidget {
@@ -19,8 +17,7 @@ class AccountabilityDetailPage extends StatelessWidget {
     final dateFormat = DateFormat('EEEE, MMMM d, yyyy');
     // final timeFormat = DateFormat('h:mm a');
 
-    return PlatformWidget.scaffold(
-      context: context,
+    return Scaffold(
       backgroundColor: kBackgroundColor,
       appBar: AppBar(
         title: const Text('Accountability Details'),
@@ -215,26 +212,16 @@ class AccountabilityDetailPage extends StatelessWidget {
                                   builder: (context) {
                                     final now = DateTime.now();
 
-                                    // Parse the time string (format: "6.00pm" or "6:00pm")
-                                    int hour = 0;
-                                    int minute = 0;
+                                    // Convert UTC date to local time first, then extract components
+                                    final localDate = slip.date.toLocal();
 
-                                    try {
-                                      // Extract time directly from DateTime
-                                      hour = slip.date.hour;
-                                      minute = slip.date.minute;
-                                    } catch (e) {
-                                      // Fallback to default values if parsing fails
-                                      hour = 0;
-                                      minute = 0;
-                                    }
-
+                                    // Create meeting DateTime in local timezone
                                     final meetingDateTime = DateTime(
-                                      slip.date.year,
-                                      slip.date.month,
-                                      slip.date.day,
-                                      hour,
-                                      minute,
+                                      localDate.year,
+                                      localDate.month,
+                                      localDate.day,
+                                      localDate.hour,
+                                      localDate.minute,
                                     );
                                     final isPast =
                                         meetingDateTime.isBefore(now);

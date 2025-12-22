@@ -36,27 +36,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _handleLogout(BuildContext context) async {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    
+    // Show confirmation dialog
+    final shouldLogout = await PlatformWidget.showLogoutDialog(
+      context: context,
+      confirmMessage: l10n.confirmLogout,
+      logoutText: l10n.logout,
+      cancelText: l10n.cancel,
+    );
+
+    // If user cancelled, return early
+    if (shouldLogout != true || !mounted) {
+      return;
+    }
+
+    final authProvider = context.read<AuthProvider>();
     try {
-      await context.read<AuthProvider>().logout();
-      if (mounted) {
-        if (PlatformUtils.isIOS) {
-          Navigator.of(context).pushAndRemoveUntil(
-            CupertinoPageRoute(builder: (context) => const LoginForm()),
-            (route) => false,
-          );
-        } else {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const LoginForm()),
-            (route) => false,
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Logout failed: ${e.toString()}')),
+      await authProvider.logout();
+      if (!mounted) return;
+      if (PlatformUtils.isIOS) {
+        Navigator.of(context).pushAndRemoveUntil(
+          CupertinoPageRoute(builder: (context) => const LoginForm()),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginForm()),
+          (route) => false,
         );
       }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: ${e.toString()}')),
+      );
     }
   }
 

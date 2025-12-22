@@ -45,15 +45,49 @@ class AccountabilitySlip {
   factory AccountabilitySlip.fromJson(Map<String, dynamic> json) {
     // Parse date from string to DateTime
     DateTime parseDate(dynamic dateValue) {
-      if (dateValue == null) return DateTime.now();
-      if (dateValue is DateTime) return dateValue;
+      if (dateValue == null) {
+        print(
+            '⚠️  AccountabilitySlip.parseDate: dateValue is null, using DateTime.now()');
+        return DateTime.now();
+      }
+      if (dateValue is DateTime) {
+        print(
+            '⚠️  AccountabilitySlip.parseDate: dateValue is already DateTime: $dateValue');
+        return dateValue;
+      }
       if (dateValue is String) {
         try {
-          return DateTime.parse(dateValue);
+          print('🕐 AccountabilitySlip.parseDate: Parsing string "$dateValue"');
+
+          String dateStr = dateValue.trim();
+
+          // If the string doesn't have timezone info (no 'Z' or timezone offset),
+          // treat it as UTC (servers typically store dates in UTC)
+          // Check if it has timezone indicator
+          final hasTimezone = dateStr.endsWith('Z') ||
+              RegExp(r'[+-]\d{2}:?\d{2}$').hasMatch(dateStr);
+
+          if (!hasTimezone && dateStr.contains('T')) {
+            // No timezone indicator - assume UTC and append 'Z'
+            dateStr = '$dateStr Z';
+            print('   → No timezone info, treating as UTC: "$dateStr"');
+          }
+
+          final parsed = DateTime.parse(dateStr);
+          // Ensure we have a UTC DateTime for consistency
+          final utcParsed = parsed.isUtc ? parsed : parsed.toUtc();
+
+          print('   → Parsed as: $utcParsed (isUtc: ${utcParsed.isUtc})');
+          print(
+              '   → UTC: ${utcParsed.toUtc()}, Local: ${utcParsed.toLocal()}');
+          return utcParsed;
         } catch (e) {
-          return DateTime.now();
+          print('❌ Error parsing date: $dateValue - $e');
+          return DateTime.now().toUtc();
         }
       }
+      print(
+          '⚠️  AccountabilitySlip.parseDate: Unexpected type ${dateValue.runtimeType}, using DateTime.now()');
       return DateTime.now();
     }
 

@@ -45,7 +45,8 @@ class ProfileModel {
 
     return ProfileModel(
       id: data?.id ?? json['_id'],
-      imageUrl: data?.image ?? json['imageUrl'],
+      imageUrl:
+          _normalizeImageUrl(data?.image ?? json['imageUrl'] ?? json['image']),
       name: data?.name ?? json['name'] ?? '',
       company: data?.company ?? json['company'] ?? '',
       memberSince: data?.memberSince ?? json['memberSince'] ?? '',
@@ -91,6 +92,19 @@ class ProfileModel {
       conncetionStatus: data?.connectionStatus ?? json['connectionStatus'],
       userid: data?.userid ?? json['userId'],
     );
+  }
+
+  static String? _normalizeImageUrl(String? url) {
+    if (url == null) return null;
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) return null;
+
+    // Many Android builds block cleartext HTTP by default; Cloudinary supports HTTPS.
+    if (trimmed.startsWith('http://')) {
+      return 'https://${trimmed.substring('http://'.length)}';
+    }
+
+    return trimmed;
   }
 
   Map<String, dynamic> toJson() {

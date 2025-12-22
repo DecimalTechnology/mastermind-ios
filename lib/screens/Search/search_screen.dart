@@ -259,21 +259,10 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _initializeSearch();
-
-    // Add listeners to text controllers to trigger UI updates
-    _firstNameController.addListener(_onTextChanged);
-    _lastNameController.addListener(_onTextChanged);
-    _companyController.addListener(_onTextChanged);
-    _locationController.addListener(_onTextChanged);
-    _keywordController.addListener(_onTextChanged);
   }
 
-  void _onTextChanged() {
-    // Trigger UI rebuild when text changes
-    if (mounted) {
-      setState(() {});
-    }
-  }
+  // Removed _updateSearchButton - button state is computed from controllers
+  // No need to call setState, which causes keyboard to close
 
   Future<void> _initializeSearch() async {
     try {
@@ -421,12 +410,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
-    _firstNameController.removeListener(_onTextChanged);
-    _lastNameController.removeListener(_onTextChanged);
-    _companyController.removeListener(_onTextChanged);
-    _locationController.removeListener(_onTextChanged);
-    _keywordController.removeListener(_onTextChanged);
-
     _firstNameController.dispose();
     _lastNameController.dispose();
     _companyController.dispose();
@@ -444,12 +427,26 @@ class _SearchScreenState extends State<SearchScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false, // Disable auto-leading to control it manually
         leading: _showResults
-            ? IconButton(
-                icon: const Icon(CupertinoIcons.back,
-                    color: kPrimaryColor, size: 28),
-                onPressed: _backToForm,
-              )
+            ? PlatformUtils.isIOS
+                ? CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: _backToForm,
+                    child: const Icon(
+                      CupertinoIcons.back,
+                      color: kPrimaryColor,
+                      size: 28,
+                    ),
+                  )
+                : IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: kPrimaryColor,
+                      size: 28,
+                    ),
+                    onPressed: _backToForm,
+                  )
             : null,
         title: const Text(
           'Search',
@@ -468,7 +465,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ],
       ),
-      drawer: MyDrawer(),
+      drawer: _showResults ? null : MyDrawer(),
       body: _showResults
           ? _buildSearchResultsWithLoadMore(context)
           : Padding(
@@ -659,19 +656,48 @@ class _SearchScreenState extends State<SearchScreen> {
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed:
-                            _canSearch ? () => _triggerSearch(context) : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4B204B),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text('Search',
-                            style: TextStyle(fontSize: 16)),
+                      child: ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _firstNameController,
+                        builder: (context, _, __) {
+                          return ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: _lastNameController,
+                            builder: (context, _, __) {
+                              return ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: _companyController,
+                                builder: (context, _, __) {
+                                  return ValueListenableBuilder<TextEditingValue>(
+                                    valueListenable: _locationController,
+                                    builder: (context, _, __) {
+                                      return ValueListenableBuilder<TextEditingValue>(
+                                        valueListenable: _keywordController,
+                                        builder: (context, _, __) {
+                                          final canSearch = _canSearch;
+                                          return ElevatedButton(
+                                            onPressed: canSearch
+                                                ? () => _triggerSearch(context)
+                                                : null,
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: canSearch
+                                                  ? const Color(0xFF4B204B)
+                                                  : Colors.grey[400],
+                                              foregroundColor: Colors.white,
+                                              padding: const EdgeInsets.symmetric(vertical: 14),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                            child: const Text('Search',
+                                                style: TextStyle(fontSize: 16)),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 18),
@@ -1059,7 +1085,21 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
     if (searchProvider.results.isEmpty) {
-      return const Center(child: Text('No results found.'));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('No results found.'),
+            const SizedBox(height: 16),
+            PlatformWidget.button(
+              onPressed: _backToForm,
+              backgroundColor: kPrimaryColor,
+              foregroundColor: Colors.white,
+              child: const Text('Back to Search'),
+            ),
+          ],
+        ),
+      );
     }
     final sortedResults = searchProvider.results;
     return ListView.separated(

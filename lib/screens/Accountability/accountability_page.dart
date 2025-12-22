@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 // Removed unused import
-import 'package:master_mind/utils/platform_utils.dart';
 import 'package:master_mind/screens/create_accountability_page.dart';
 import 'package:master_mind/screens/Accountability/accountability_detail_page.dart';
 import 'package:master_mind/providers/accountability_provider.dart';
@@ -40,8 +38,7 @@ class _AccountabilityPageState extends State<AccountabilityPage> {
     final isLoading = accountabilityProvider.isLoading;
     final error = accountabilityProvider.error;
 
-    return PlatformWidget.scaffold(
-      context: context,
+    return Scaffold(
       backgroundColor: kBackgroundColor,
       appBar: AppBar(
         title: const Text(
@@ -207,11 +204,14 @@ class _AccountabilityPageState extends State<AccountabilityPage> {
                   onEdit: () async {
                     final now = DateTime.now();
 
+                    // Convert UTC date to local time first
+                    final localDate = slip.date.toLocal();
+
                     // Check if the meeting date is in the past (without time consideration)
                     final meetingDate = DateTime(
-                      slip.date.year,
-                      slip.date.month,
-                      slip.date.day,
+                      localDate.year,
+                      localDate.month,
+                      localDate.day,
                     );
                     final today = DateTime(now.year, now.month, now.day);
 
@@ -228,8 +228,14 @@ class _AccountabilityPageState extends State<AccountabilityPage> {
 
                     // If the meeting is today, check the time
                     if (meetingDate.isAtSameMomentAs(today)) {
-                      // Use the date directly since it's already in local time
-                      final meetingDateTime = slip.date.toLocal();
+                      // Create meeting DateTime in local timezone
+                      final meetingDateTime = DateTime(
+                        localDate.year,
+                        localDate.month,
+                        localDate.day,
+                        localDate.hour,
+                        localDate.minute,
+                      );
                       final isPast = meetingDateTime.isBefore(now);
 
                       if (isPast) {
